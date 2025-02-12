@@ -1,0 +1,42 @@
+/* Importando o Bootstrap */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Estilos globais */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container-flex {
+    display: flex;
+}
+
+.sidebar {
+    background-color: #081d33;
+    color: white;
+    width: 250px;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.sidebar a:hover {
+    background-color: #ff4500;
+}
+
+.active {
+    background-color: #ff4500;
+}
+
+.content {
+    padding: 20px;
+    flex-grow: 1;
+}

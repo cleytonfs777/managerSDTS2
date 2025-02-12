@@ -1,0 +1,17 @@
+services:
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - frontend
+    network_mode: bridge
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    restart: always
+    network_mode: bridge
+
