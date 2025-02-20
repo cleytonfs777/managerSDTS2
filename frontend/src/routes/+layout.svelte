@@ -68,14 +68,14 @@
 <div class="container-flex">
     <!-- MENU LATERAL -->
     <nav class="sidebar">
-        <h3>📌 SDTS - Sistema</h3>
+        <h3>💻 SDTS</h3>
 
         <a href="/atribuicao" class="nav-link {page.url.pathname === '/atribuicao' ? 'active' : ''}">
-            <span class="nav-icon">📄</span> Atribuição
+            <span class="nav-icon">💣</span> Atribuição
         </a>
         
-        <a href="/diarias" class="nav-link {page.url.pathname === '/diarias' ? 'active' : ''}">
-            <span class="nav-icon">📅</span> Diárias
+        <a href="/oficios" class="nav-link {page.url.pathname === '/oficios' ? 'active' : ''}">
+            <span class="nav-icon">📄</span> Gerador de Ofícios
         </a>
 
         <a href="/fornecimento" class="nav-link {page.url.pathname === '/fornecimento' ? 'active' : ''}">

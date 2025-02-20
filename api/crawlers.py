@@ -14,12 +14,15 @@ import os
 from textbase import bodyTexto1, bodyAssunto1
 from utils import tranform_text_atribuicao
 from google_sheets import main
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # FUNÇÕE DA ABA ATRAIBUIÇÕES
 def iniciar_navegador():
     """Configura e retorna um navegador Selenium headless"""
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
@@ -143,15 +146,17 @@ def atribuir_documento(numSei, etiqueta, msg, atribuicao, assunto, status, categ
         navegador.quit()
 
 
-
 # FUNÇÕE DA ABA DIÁRIAS
-def gerar_dsp(numSei="1400.01.0041101/2024-28", documento="Despacho", documentoResp="Ofício", descricao="Descentralização de credito para execução de DSP Técnica", resposta="Resposta a solicitação de Descentralização de crédito para DSP", ofref="Ofício 1006 (90857411)", destino="1400029 - 5º COB", val="R$ 300,00", justif="Realização de manutenção de computadores, instalação de roteador de internet e manutenção do sistema de som da SOU da 2ª Cia/9º BBM Lavras", etiqueta="Aguardando Despacho do Major", atribuicao="67869998672 - Giovanny Cesar De Abreu", msg="Encaminho a vossa senhoria documentação que trata de descentralização de crédito. Resp, Cap Cleyton"):
+def gerar_dsp(numSei="1400.01.0041101/2024-28", documento="Despacho", documentoResp="Ofício",
+              descricao="Descentralização de crédito para execução de DSP Técnica",
+              resposta="Resposta a solicitação de Descentralização de crédito para DSP",
+              ofref="Ofício 1006 (90857411)", destino="1400029 - 5º COB", val="R$ 300,00",
+              justif="Realização de manutenção de computadores, instalação de roteador de internet e manutenção do sistema de som da SOU da 2ª Cia/9º BBM Lavras",
+              etiqueta="Aguardando Despacho do Major", atribuicao="67869998672 - Giovanny Cesar De Abreu",
+              msg="Encaminho a vossa senhoria documentação que trata de descentralização de crédito. Resp, Cap Cleyton"):
 
-    # Carregar variáveis de ambiente
-    SEIGOL = os.getenv("SEI_GOL")
-
-    # Define variáveis globaiso
-    adicionarBotao = True
+    SEIGOL = os.getenv("SEI_GOL", "1400.01.0007019/2025-97")
+    yield "Iniciando a automação...\n"
     
     navegador = iniciar_navegador()
     url = "https://www.sei.mg.gov.br"
@@ -165,84 +170,70 @@ def gerar_dsp(numSei="1400.01.0041101/2024-28", documento="Despacho", documentoR
     try:
         yield "Realizando login no SEI MG...\n"
 
-        navegador.find_element(By.ID, "txtUsuario").send_keys(USER_ACCOUNT)
-        navegador.find_element(By.ID, "pwdSenha").send_keys(PASS_ACCOUNT)
+        # Aguarde até que o campo de usuário esteja visível antes de interagir
+        wait = WebDriverWait(navegador, 10)  # Aguarde até 10 segundos
+        usuario_input = wait.until(EC.presence_of_element_located((By.ID, "txtUsuario")))
+        senha_input = wait.until(EC.presence_of_element_located((By.ID, "pwdSenha")))
+        orgao_select = wait.until(EC.presence_of_element_located((By.ID, "selOrgao")))
+        acessar_button = wait.until(EC.element_to_be_clickable((By.ID, "Acessar")))
 
-        # Selecionar o órgão no dropdown
-        select_element = navegador.find_element(By.ID, "selOrgao")
-        select = Select(select_element)
+        print(" Achou todos...")
+
+        print(f"Usuário: {USER_ACCOUNT}")
+        print(f"Senha: {PASS_ACCOUNT}")
+
+        usuario_input.send_keys(USER_ACCOUNT)
+        senha_input.send_keys(PASS_ACCOUNT)
+
+        # Selecionar a unidade
+        select = Select(orgao_select)
         select.select_by_visible_text(UNID_ACCOUNT)
-
-        navegador.find_element(By.ID, "Acessar").click()
+        acessar_button.click()
         yield "Login realizado com sucesso!\n"
-        # SEGUNDA PARTE ################# #divArvoreAcoes > a:nth-child(1)
 
-        # Insira no campo perquisa de id=txtPesquisaRapida o valor que está na variavel numSei
-        navegador.find_element(
-            By.ID, "txtPesquisaRapida").send_keys(SEIGOL, Keys.ENTER)
+        # Aguardar e entrar no frame correto
+        # wait = WebDriverWait(navegador, 10)
+        # frame_2 = wait.until(EC.presence_of_element_located((By.ID, 'ifrVisualizacao')))
+        # navegador.switch_to.frame(frame_2)
 
-        # Aguarde até que o primeiro frame esteja presente e mude para ele
+        # Pesquisar documento
+        navegador.find_element(By.ID, "txtPesquisaRapida").send_keys(SEIGOL)
+        navegador.find_element(By.ID, "txtPesquisaRapida").send_keys(Keys.ENTER)
+        yield f"Pesquisando documento {SEIGOL}...\n"
+
         wait = WebDriverWait(navegador, 10)
-
-        # Aguarde até que o segundo frame esteja presente e mude para ele
-        frame_2 = wait.until(EC.presence_of_element_located(
-            (By.ID, 'ifrVisualizacao')))
+        frame_2 = wait.until(EC.presence_of_element_located((By.ID, 'ifrVisualizacao')))
         navegador.switch_to.frame(frame_2)
 
-        navegador.find_element(
-            By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
+        navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
+        yield "Criando despacho de solicitação para a Gol...\n"
 
-        yield "Criando despacho de solicitação para a Gol!\n"
+        navegador.find_element(By.XPATH, '//*[@id="txtFiltro"]').send_keys(documento)
+        navegador.find_element(By.XPATH, '//*[@id="txtFiltro"]').send_keys(Keys.TAB, Keys.TAB, Keys.ENTER)
 
-        # Insere o conteudo de msg no campo de mensagens //*[@id="txtFiltro"]
-        navegador.find_element(
-            By.XPATH, '//*[@id="txtFiltro"]').send_keys(documento)
+        navegador.find_element(By.XPATH, '//*[@id="txtDescricao"]').send_keys(descricao)
+        navegador.find_element(By.CSS_SELECTOR, '#divOptPublico > div > label').click()
+        navegador.find_element(By.XPATH, '//*[@id="btnSalvar"]').click()
 
-        navegador.find_element(
-            By.XPATH, '//*[@id="txtFiltro"]').send_keys(Keys.TAB, Keys.TAB, Keys.ENTER)
+        yield "Abrindo despacho para edição...\n"
 
-        navegador.find_element(
-            By.XPATH, '//*[@id="txtDescricao"]').send_keys(descricao)
+        sleep(1.5)
 
-        navegador.find_element(
-            By.CSS_SELECTOR, '#divOptPublico > div > label').click()
-
-        navegador.find_element(
-            By.XPATH, '//*[@id="btnSalvar"]').click()
-
-        ############# ETAPA DE NOVA JANELA ##########################
-        yield "Abrindo despacho para a edição...\n"
-        # Salve o identificador da janela original
+        # Mudança de janela para edição
         original_window = navegador.current_window_handle
-
-        print(f"Janela original: {original_window}")
-
-        print(f"Janelas abertas: {navegador.window_handles}")
-
-        # Obtenha o identificador da nova janela
-        new_window = [
-            window for window in navegador.window_handles if window != original_window][0]
-
-        print(f"Janela nova: {new_window}")
-
-        # Mude para a nova janela
+        new_window = [window for window in navegador.window_handles if window != original_window][0]
         navegador.switch_to.window(new_window)
 
-        # INJETA O CONTEUDO DO SEGUNDO FRAME
         navegador.switch_to.frame(3)
-
-        # Substitua pelo seletor correto da sua div
         div_element = navegador.find_element(By.CSS_SELECTOR, "body")
 
-        # Substitua o conteúdo do <p> por um <h3>
+               # Substitua o conteúdo do <p> por um <h3>
         novo_conteudo = bodyTexto1(ofref, destino, val, justif)
 
         navegador.execute_script(
             "arguments[0].innerHTML = arguments[1];", div_element, novo_conteudo)
 
         sleep(1)
-        
-        yield "Documento criado corretamente!\n"
 
         navegador.switch_to.default_content()
 
@@ -265,10 +256,10 @@ def gerar_dsp(numSei="1400.01.0041101/2024-28", documento="Despacho", documentoR
         # Clica no botão de salvar
         div_element = navegador.find_element(
             By.CSS_SELECTOR, "#cke_149").click()
-        
-        yield "Documento pronto para atribuição!\n"
 
         sleep(3)
+
+        yield "Documento salvo com sucesso!\n"
 
         # Feche a nova janela
         navegador.close()
@@ -279,56 +270,32 @@ def gerar_dsp(numSei="1400.01.0041101/2024-28", documento="Despacho", documentoR
         # Atualiza a pagina para aparecer o botão de atribuição
         navegador.refresh()
 
-        # Atribuição para o Major
-
-        # Aguarde até que o segundo frame esteja presente e mude para ele
-        frame_2 = wait.until(EC.presence_of_element_located(
-            (By.ID, 'ifrVisualizacao')))
+        # Atribuição
+        frame_2 = wait.until(EC.presence_of_element_located((By.ID, 'ifrVisualizacao')))
         navegador.switch_to.frame(frame_2)
+        navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[22]').click()
+        navegador.find_element(By.CSS_SELECTOR, '#btnAdicionar').click()
+        navegador.find_element(By.CSS_SELECTOR, '#selMarcador > div > span').click()
 
-        navegador.find_element(
-            By.XPATH, '//*[@id="divArvoreAcoes"]/a[22]').click()
-
-        if adicionarBotao:
-            navegador.find_element(
-                By.CSS_SELECTOR, '#btnAdicionar').click()
-
-        navegador.find_element(
-            By.CSS_SELECTOR, '#selMarcador > div > span').click()
-
-        # Aguardar que as opções estejam visíveis
         opcoes = WebDriverWait(navegador, 10).until(
-            EC.visibility_of_all_elements_located(
-                (By.CSS_SELECTOR, "a.dd-option"))
+            EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "a.dd-option"))
         )
 
-        # Iterar sobre as opções e clicar naquela que corresponde ao texto alvo
         for opcao in opcoes:
             texto = opcao.text.strip()
             if texto == etiqueta:
                 opcao.click()
                 break
 
-        # Insere o conteudo de msg no campo de mensagens //*[@id="txaTexto"]
         navegador.find_element(By.XPATH, '//*[@id="txaTexto"]').send_keys(msg)
-
-        # Clica atraves do XPATH no botão //*[@id="sbmSalvar"]
         navegador.find_element(By.XPATH, '//*[@id="sbmSalvar"]').click()
         yield "Despacho atribuído com sucesso!\n"
 
-
-        print("Despacho realizado com sucesso. Aguardando atribuição...")
-
-        # Atualiza a pagina
         navegador.refresh()
-
         navegador.switch_to.frame(1)
 
-        # Faz um click no botao XPATH //*[@id="divArvoreAcoes"]/a[8]
-        navegador.find_element(
-            By.XPATH, '//*[@id="divArvoreAcoes"]/a[8]').click()
+        navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[8]').click()
 
-        # Script JavaScript para selecionar a opção pelo texto
         script = f"""
         var atribuicao = "{atribuicao}";
         var selectElement = document.querySelector("#selAtribuicao");
@@ -340,77 +307,36 @@ def gerar_dsp(numSei="1400.01.0041101/2024-28", documento="Despacho", documentoR
             }}
         }}
         """
-        # Executar o script
         navegador.execute_script(script)
-
-        # Clica no botao de XPATH //*[@id="sbmSalvar"]
         navegador.find_element(By.XPATH, '//*[@id="sbmSalvar"]').click()
+
         yield f"Atribuição ao {atribuicao} realizada!\n"
 
-        sleep(1)
-
-        print(
-            "Atribuição realizada com sucesso. Aguardando registro em controle sei...")
-
-        # INDO PARA O DOCUMENTO DE RESPONSTA
-
-        # SEGUNDA PARTE ################# #divArvoreAcoes > a:nth-child(1)
         navegador.refresh()
+        yield "Iniciando ofício de resposta à Unidade Solicitante...\n"
 
-        yield "Iniciando ofício de resposta a Unidade Solicitante!\n"
-
-        # Insira no campo perquisa de id=txtPesquisaRapida o valor que está na variavel numSei
-        navegador.find_element(
-            By.ID, "txtPesquisaRapida").send_keys(numSei, Keys.ENTER)
-
-        # Aguarde até que o primeiro frame esteja presente e mude para ele
-        wait = WebDriverWait(navegador, 10)
-
-        # Aguarde até que o segundo frame esteja presente e mude para ele
-        frame_2 = wait.until(EC.presence_of_element_located(
-            (By.ID, 'ifrVisualizacao')))
+        navegador.find_element(By.ID, "txtPesquisaRapida").send_keys(numSei, Keys.ENTER)
+        frame_2 = wait.until(EC.presence_of_element_located((By.ID, 'ifrVisualizacao')))
         navegador.switch_to.frame(frame_2)
 
-        navegador.find_element(
-            By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
-
-        # Insere o conteudo de msg no campo de mensagens //*[@id="txtFiltro"]
-        navegador.find_element(
-            By.XPATH, '//*[@id="txtFiltro"]').send_keys(documentoResp)
-
-        navegador.find_element(
-            By.XPATH, '//*[@id="txtFiltro"]').send_keys(Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.TAB, Keys.ENTER)
-
-        navegador.find_element(
-            By.XPATH, '//*[@id="txtDescricao"]').send_keys(resposta)
-
-        navegador.find_element(
-            By.CSS_SELECTOR, '#divOptPublico > div > label').click()
-
-        navegador.find_element(
-            By.XPATH, '//*[@id="btnSalvar"]').click()
-
-        ############# ETAPA DE NOVA JANELA ##########################
+        navegador.find_element(By.XPATH, '//*[@id="divArvoreAcoes"]/a[1]').click()
+        navegador.find_element(By.XPATH, '//*[@id="txtFiltro"]').send_keys(documentoResp)
+        navegador.find_element(By.XPATH, '//*[@id="txtDescricao"]').send_keys(resposta)
+        navegador.find_element(By.CSS_SELECTOR, '#divOptPublico > div > label').click()
+        navegador.find_element(By.XPATH, '//*[@id="btnSalvar"]').click()
 
         sleep(10)
-
         navegador.find_element(By.XPATH, '//*[@id="sbmSalvar"]').click()
-
         yield "Documento de resposta criado com sucesso!\n"
 
-        # Atualiza a pagina
-        navegador.refresh()
-
-        navegador.switch_to.frame(1)
-
-        # Faz um click no botao XPATH //*[@id="divArvoreAcoes"]/a[8]
-        navegador.find_element(
-            By.XPATH, '//*[@id="divArvoreAcoes"]/a[8]').click()
-
-
-        navegador.find_element(By.XPATH, '//*[@id="sbmSalvar"]').click()
-
-
     except Exception as e:
+        yield f"Erro na execução: {e}"  # Agora a função sempre retorna um gerador
 
-        print(f"Erro: {e}")
+
+    finally:
+        navegador.quit()
+
+if __name__ == "__main__":
+    print("Iniciando geração de DSP...")
+    for mensagem in gerar_dsp():
+        print(mensagem)

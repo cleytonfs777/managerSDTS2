@@ -148,7 +148,7 @@
 </script>
 
 
-<h1 class="text-center text-primary">📄 Atribuição de SEI</h1>
+<h1 class="text-center text-primary">💣 Atribuição de SEI</h1>
 
 <div class="form-container">
   <form>
@@ -277,7 +277,7 @@
         <div class="documentos-container">
           {#each documentos as doc, index}
             <div class="d-flex justify-content-between align-items-center">
-              <span>📌 {doc}</span>
+              <span>➡ {doc}</span>
               <button
                 class="btn-delete"
                 on:click={() => removerDocumento(index)}>🗑️</button

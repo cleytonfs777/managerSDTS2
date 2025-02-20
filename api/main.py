@@ -44,5 +44,7 @@ def atribuir(numSei: str, etiqueta: str, msg: str, atribuicao: str, assunto: str
 
 
 
-def criar_dsp():
-    pass
+@app.get("/criar-oficio")
+def criar_oficio(numSei: str, criacao: str, assunto: str, tipdoc: str, reference: str, detinatarios: str, considerandos: str, complementar: str, pronome: str, assinador: str):
+    # Criar os paragrafos criando a api da 
+    ...
