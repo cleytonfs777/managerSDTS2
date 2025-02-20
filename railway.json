@@ -1,0 +1,11 @@
+{
+    "services": {
+      "frontend": {
+        "dockerfile": "./frontend/Dockerfile"
+      },
+      "backend": {
+        "dockerfile": "./api/Dockerfile"
+      }
+    }
+  }
+  
