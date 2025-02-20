@@ -1,11 +1,6 @@
 {
-    "services": {
-      "frontend": {
-        "dockerfile": "./frontend/Dockerfile"
-      },
-      "backend": {
-        "dockerfile": "./api/Dockerfile"
-      }
+    "deploy": {
+      "dockerComposeFile": "docker-compose.yml"
     }
-  }
+}
   
