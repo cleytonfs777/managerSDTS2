@@ -1,6 +1,9 @@
 {
+    "build": {
+      "buildCommand": "docker compose build"
+    },
     "deploy": {
-      "startCommand": "docker compose up --build"
+      "startCommand": "docker compose up"
     }
   }
   
