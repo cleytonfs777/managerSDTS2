@@ -1,11 +1,17 @@
 import adapter from '@sveltejs/adapter-auto';
+import path from 'path'; // ✅ Importando o módulo 'path'
+import { fileURLToPath } from 'url';
+
+// ✅ Corrigindo __dirname para funcionar no ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
+		alias: {
+			$lib: path.resolve(__dirname, 'src/lib')  // ✅ Garantindo caminho absoluto correto
+		},
 		adapter: adapter()
 	}
 };

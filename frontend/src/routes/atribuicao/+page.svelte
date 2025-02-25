@@ -1,4 +1,6 @@
 <script>
+// @ts-nocheck
+
   import { onMount } from "svelte";
   import { listaAllNames, status, categoria, etiqueta } from "$lib/loadData";
   import { generateText } from "$lib/generateText";
@@ -95,23 +97,26 @@
     progresso = 0;
 
     try {
-        // Construir a URL com os parâmetros como query string
-        const url = new URL(API_URL);
-        url.search = new URLSearchParams({
-            numSei: numSei.trim(),
-            etiqueta: etiquetaSelecionada.trim(),
-            msg: textoGerado.trim(),
-            atribuicao: atribuicao.trim(),
-            assunto: assunto.trim(),
-            status: statusSelecionado.trim(),
-            categoria: categoriaSelecionada.trim(),
-            grava_reg_sei: gravaSei.trim(),
-        }).toString();
+        // Criando JSON com os dados corretos
+        const dados = {
+            numSei: numSei, 
+            etiqueta: etiquetaSelecionada, 
+            msg: textoGerado, 
+            atribuicao: atribuicao, 
+            assunto: assunto, 
+            status: statusSelecionado, 
+            categoria: categoriaSelecionada, 
+            grava_reg_sei: gravaSei
+        };
 
-        const response = await fetch(url, {
+        // Console log para debug
+        console.log("Enviando dados:", JSON.stringify(dados, null, 2));
+
+        const response = await fetch(API_URL, {
             method: "POST",
             mode: "cors",
-            headers: { "Content-Type": "application/json" }
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dados)  // Enviando JSON no corpo da requisição
         });
 
         if (!response.ok) {
@@ -121,7 +126,6 @@
         respostaAPI = [];
 
         // Ler a resposta em tempo real
-        // @ts-ignore
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
@@ -137,7 +141,6 @@
             progresso = Math.min(respostaAPI.length * 10, 100);
         }
     } catch (error) {
-        // @ts-ignore
         respostaAPI = [`Erro: ${error.message}`];
     } finally {
         processandoEnvio = false;

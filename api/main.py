@@ -33,6 +33,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def health():
+    return {"status": "ok"}
+
 
 # Criar o endpoint FastAPI que usa StreamingResponse
 @app.post("/atribuicao")
@@ -48,3 +52,8 @@ def atribuir(numSei: str, etiqueta: str, msg: str, atribuicao: str, assunto: str
 def criar_oficio(numSei: str, criacao: str, assunto: str, tipdoc: str, reference: str, detinatarios: str, considerandos: str, complementar: str, pronome: str, assinador: str):
     # Criar os paragrafos criando a api da 
     ...
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
